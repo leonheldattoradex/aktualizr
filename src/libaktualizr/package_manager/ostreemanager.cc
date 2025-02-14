@@ -73,6 +73,11 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
                                              const Uptane::Target &target, const api::FlowControlToken *token,
                                              OstreeProgressCb progress_cb, const char *alt_remote,
                                              boost::optional<std::unordered_map<std::string, std::string>> headers) {
+  if (ostree_server.find("://") == std::string::npos) {
+    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed,
+                                    "Invalid OSTree URI: must contain scheme (e.g., http://)");
+  }
+
   if (!target.IsOstree()) {
     throw std::logic_error("Invalid type of Target, got " + target.type() + ", expected OSTREE");
   }

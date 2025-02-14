@@ -33,7 +33,7 @@ TEST(OstreeManager, PullBadUriNoCreds) {
       OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target_test);
 
   EXPECT_EQ(result.result_code.num_code, data::ResultCode::Numeric::kInstallFailed);
-  EXPECT_EQ(result.description, "Failed to parse uri: bad-url");
+  EXPECT_EQ(result.description, "Invalid OSTree URI: must contain scheme (e.g., http://)");
 }
 
 /* Reject bad OSTree server URIs. */
@@ -62,7 +62,7 @@ TEST(OstreeManager, PullBadUriWithCreds) {
       OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target_test);
 
   EXPECT_EQ(result.result_code.num_code, data::ResultCode::Numeric::kInstallFailed);
-  EXPECT_EQ(result.description, "Failed to parse uri: bad-url");
+  EXPECT_EQ(result.description, "Invalid OSTree URI: must contain scheme (e.g., http://)");
 }
 
 /* Reject bad OSTree server URIs. */
