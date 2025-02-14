@@ -72,7 +72,7 @@ if(EXISTS /opt/homebrew/opt/libarchive/include)
   list(APPEND CMAKE_PREFIX_PATH /opt/homebrew/opt/libarchive/include)
 endif()
 
-find_package(Boost 1.58.0 COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
+find_package(Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 find_package(CURL REQUIRED)
 find_package(OpenSSL 1.0.2 REQUIRED)
 find_package(Threads REQUIRED)
