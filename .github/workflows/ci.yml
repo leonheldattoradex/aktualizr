@@ -7,7 +7,7 @@ on:
 env:
   CCACHE_DIR: ${{ github.workspace }}/.ccache
 jobs:
-  coverage:
+  coverage-bullseye:
     name: Build and Test on Debian Bullseye
     runs-on: ubuntu-latest
     env:
@@ -44,6 +44,48 @@ jobs:
       - name: Test
         run: |
           docker run --mount=type=volume,source=ccache,destination=/home/testuser/.cache  -t "$DOCKER_TAG" source/scripts/build-and-test.sh
+      - name: Stash ccache
+        run: |
+          mkdir -p ${{github.workspace}}/cache
+          docker run --mount=type=volume,source=ccache,destination=/home/testuser/.cache -i "$DOCKER_TAG" tar -cf- .cache > ${{github.workspace}}/cache/cache.tar
+
+  coverage-bookworm:
+    name: Build and Test on Debian Bookworm
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_TAG: docker.pkg.github.com/uptane/aktualizr/aktualizr-ci:bookworm-master
+      DOCKERFILE: docker/Dockerfile.debian.bookworm
+      DARGS: >-
+        -eCCACHE_DIR
+        -eTEST_CMAKE_BUILD_TYPE=Valgrind
+        -eTEST_WITH_P11=1
+        -eTEST_WITH_FAULT_INJECTION=1
+        -eTEST_TESTSUITE_EXCLUDE=credentials
+        -eTEST_SOTA_PACKED_CREDENTIALS=dummy-credentials
+    steps:
+      - uses: actions/checkout@main
+      - run: |
+          git fetch --prune --unshallow
+          git submodule update --init --recursive --force
+      - name: Docker login
+        if: github.token
+        run: echo ${{ github.token }} | docker login docker.pkg.github.com -u uptane --password-stdin
+      - name: Docker build
+        run: |
+          docker pull "$DOCKER_TAG" || true
+          docker build --cache-from "$DOCKER_TAG" --pull -t "$DOCKER_TAG" -f "$DOCKERFILE" .
+      - uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/cache
+          key: debian-bookworm-${{ github.run_id }}
+          restore-keys: |
+            debian-bookworm-${{ github.run_id }}
+            debian-bookworm-
+      - name: Unpack ccache
+        run: docker run --mount=type=volume,source=ccache,destination=/home/testuser/.cache -i "$DOCKER_TAG" tar -xf- < ${{github.workspace}}/cache/cache.tar || echo "No cache found"
+      - name: Test
+        run: |
+          docker run --mount=type=volume,source=ccache,destination=/home/testuser/.cache -t "$DOCKER_TAG" source/scripts/build-and-test.sh
       - name: Stash ccache
         run: |
           mkdir -p ${{github.workspace}}/cache
