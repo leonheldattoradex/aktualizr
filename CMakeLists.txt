@@ -61,7 +61,7 @@ endif (CCACHE)
 # find all required libraries
 set(BOOST_COMPONENTS log_setup log system filesystem program_options)
 set(Boost_USE_STATIC_LIBS OFF)
-add_definitions(-DBOOST_LOG_DYN_LINK)
+add_definitions(-DBOOST_LOG_DYN_LINK -DBOOST_BIND_GLOBAL_PLACEHOLDERS)
 
 # Mac brew library install paths
 if(EXISTS /opt/homebrew/opt/openssl@1.1)
