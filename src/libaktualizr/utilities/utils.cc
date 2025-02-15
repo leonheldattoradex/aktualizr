@@ -28,6 +28,7 @@
 #include <boost/archive/iterators/remove_whitespace.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
@@ -780,20 +781,31 @@ void Utils::createDirectories(const boost::filesystem::path &path, mode_t mode) 
 }
 
 bool Utils::createSecureDirectory(const boost::filesystem::path &path) {
-  if (mkdir(path.c_str(), S_IRWXU) == 0) {
-    // directory created successfully
-    return true;
+  boost::system::error_code ec;
+
+  if (boost::filesystem::create_directory(path, ec)) {
+    if (ec) {
+      LOG_ERROR << "Error creating secure directory: " << ec.message();
+      return false;
+    }
+
+    boost::filesystem::permissions(path, boost::filesystem::owner_all, ec);
+    return !ec;
   }
 
-  // mkdir failed, see if the directory already exists with correct permissions
-  struct stat st {};
-  int ret = stat(path.c_str(), &st);
-  // checks: - stat succeeded
-  //         - is a directory
-  //         - no read and write permissions for group and others
-  //         - owner is current user
-  return (ret >= 0 && ((st.st_mode & S_IFDIR) == S_IFDIR) && (st.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO)) == S_IRWXU &&
-          (st.st_uid == getuid()));
+  if (ec.value() == boost::system::errc::file_exists) {
+    const boost::filesystem::file_status status = boost::filesystem::status(path, ec);
+    if (ec || !boost::filesystem::is_directory(status)) return false;
+
+    const boost::filesystem::perms actual_perms = status.permissions() & boost::filesystem::perms_mask;
+
+    if (actual_perms != boost::filesystem::owner_all) return false;
+
+    struct stat st;
+    return (stat(path.c_str(), &st) == 0) && (st.st_uid == getuid());
+  }
+
+  return false;
 }
 
 std::string Utils::urlEncode(const std::string &input) {
