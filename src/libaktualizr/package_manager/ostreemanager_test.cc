@@ -73,6 +73,7 @@ TEST(OstreeManager, InstallBadUri) {
   Uptane::Target target("branch-name-hash", target_json);
   TemporaryDirectory temp_dir;
   Config config;
+  config.pacman.os = "test-os";
   config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
