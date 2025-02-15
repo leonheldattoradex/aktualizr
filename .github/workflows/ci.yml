@@ -56,7 +56,6 @@ jobs:
       DOCKER_TAG: docker.pkg.github.com/uptane/aktualizr/aktualizr-ci:bookworm-master
       DOCKERFILE: docker/Dockerfile.debian.bookworm
       DARGS: >-
-        -eCCACHE_DIR
         -eTEST_CMAKE_BUILD_TYPE=Valgrind
         -eTEST_WITH_P11=1
         -eTEST_WITH_FAULT_INJECTION=1
@@ -81,15 +80,9 @@ jobs:
           restore-keys: |
             debian-bookworm-${{ github.run_id }}
             debian-bookworm-
-      - name: Unpack ccache
-        run: docker run --mount=type=volume,source=ccache,destination=/home/testuser/.cache -i "$DOCKER_TAG" tar -xf- < ${{github.workspace}}/cache/cache.tar || echo "No cache found"
       - name: Test
         run: |
-          docker run --mount=type=volume,source=ccache,destination=/home/testuser/.cache -t "$DOCKER_TAG" source/scripts/build-and-test.sh
-      - name: Stash ccache
-        run: |
-          mkdir -p ${{github.workspace}}/cache
-          docker run --mount=type=volume,source=ccache,destination=/home/testuser/.cache -i "$DOCKER_TAG" tar -cf- .cache > ${{github.workspace}}/cache/cache.tar
+          docker run -v "${{ github.workspace }}:/source" -w / -t "$DOCKER_TAG" bash -c "git config --global --add safe.directory /source && ./source/scripts/build-and-test.sh"
 
   nop11:
     name: Tests with PKCS#11 support on Ubuntu Bionic

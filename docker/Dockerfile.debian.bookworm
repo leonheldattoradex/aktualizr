@@ -54,14 +54,3 @@ RUN apt-get update && apt-get -y install -\
   shellcheck \
   sqlite3 \
   zip
-
-
-
-RUN useradd testuser
-
-WORKDIR /home/testuser
-RUN chown testuser:testuser /home/testuser
-COPY . /home/testuser/source
-RUN chown -R testuser:testuser /home/testuser/source
-USER testuser
-RUN mkdir /home/testuser/.cache
