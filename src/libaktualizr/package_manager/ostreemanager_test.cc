@@ -71,6 +71,7 @@ TEST(OstreeManager, InstallBadUri) {
   target_json["hashes"]["sha256"] = "hash";
   target_json["length"] = 0;
   Uptane::Target target("branch-name-hash", target_json);
+
   TemporaryDirectory temp_dir;
   Config config;
   config.pacman.os = "test-os";
@@ -79,7 +80,12 @@ TEST(OstreeManager, InstallBadUri) {
   config.storage.path = temp_dir.Path();
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+
+  GObjectUniquePtr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.pacman.sysroot);
+  ASSERT_NE(sysroot, nullptr) << "Failed to initialize sysroot";
+
   OstreeManager ostree(config.pacman, config.bootloader, storage, nullptr);
+
   data::InstallationResult result = ostree.install(target);
   EXPECT_EQ(result.result_code.num_code, data::ResultCode::Numeric::kInstallFailed);
   EXPECT_EQ(result.description, "Refspec 'hash' not found");
