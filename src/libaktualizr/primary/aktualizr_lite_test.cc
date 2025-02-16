@@ -23,7 +23,8 @@ class TufRepoMock {
       : repo_{root_dir, expires, correlation_id},
         port_{TestUtils::getFreePort()},
         url_{"http://localhost:" + port_},
-        process_{"tests/fake_http_server/fake_test_server.py", port_, "-m", root_dir} {
+        process_(boost::process::exe = "tests/fake_http_server/fake_test_server.py",
+                 boost::process::args = {port_, "-m", root_dir.string()}) {
     repo_.generateRepo(KeyType::kED25519);
     TestUtils::waitForServer(url_ + "/");
   }
@@ -58,14 +59,8 @@ class Treehub {
       : root_dir_{root_dir},
         port_{TestUtils::getFreePort()},
         url_{"http://localhost:" + port_},
-        process_{"tests/sota_tools/treehub_server.py",
-                 std::string("-p"),
-                 port_,
-                 std::string("-d"),
-                 root_dir,
-                 std::string("-s0.5"),
-                 std::string("--create"),
-                 std::string("--system")} {
+        process_(boost::process::exe = "tests/sota_tools/treehub_server.py",
+                 boost::process::args = {"-p", port_, "-d", root_dir, "-s0.5", "--create", "--system"}) {
     std::this_thread::sleep_for(std::chrono::seconds(2));
     TestUtils::waitForServer(url_ + "/");
   }
