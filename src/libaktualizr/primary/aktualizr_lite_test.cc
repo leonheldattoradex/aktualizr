@@ -30,7 +30,8 @@ class TufRepoMock {
   }
   ~TufRepoMock() {
     process_.terminate();
-    process_.wait_for(std::chrono::seconds(10));
+    auto future = process_.async_wait();
+    future.wait_for(std::chrono::seconds(10));
   }
 
  public:
@@ -67,7 +68,8 @@ class Treehub {
 
   ~Treehub() {
     process_.terminate();
-    process_.wait_for(std::chrono::seconds(10));
+    auto future = process_.async_wait();
+    future.wait_for(std::chrono::seconds(10));
   }
 
   const std::string& url() { return url_; }

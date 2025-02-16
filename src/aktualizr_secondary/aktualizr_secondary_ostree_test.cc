@@ -29,7 +29,7 @@ class Treehub {
 
   ~Treehub() {
     process_.terminate();
-    process_.wait_for(std::chrono::seconds(10));
+    process_.wait(std::chrono::seconds(10));
     if (process_.running()) {
       LOG_ERROR << "Failed to stop Treehub server";
     } else {
