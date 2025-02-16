@@ -7,9 +7,9 @@
 
 #include <json/json.h>
 #include <boost/algorithm/hex.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>  // exists
 #include <boost/filesystem/path.hpp>
-#include <boost/filesystem/path_traits.hpp>
 
 #include "crypto/crypto.h"
 #include "crypto/p11engine.h"
